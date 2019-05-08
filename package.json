@@ -1,0 +1,65 @@
+{
+  "name": "jingtum-base-lib",
+  "version": "1.2.1",
+  "description": "jingtum base lib for wallet and so on.",
+  "main": "index.js",
+  "scripts": {
+    "prettier": "prettier",
+    "pretty-quick": "pretty-quick",
+    "prettier:check": "prettier -c --no-semi index.js src/*.js",
+    "prettier:tabs": "prettier --no-semi --use-tabs --write package.json index.js src/*.js",
+    "eslint": "eslint index.js src/*.js",
+    "gulp": "gulp dev",
+    "gulp:production": "gulp production",
+    "build": "webpack",
+    "build:production": "webpack --config prod.webpack.config",
+    "test": "mocha \"test/*.js\"",
+    "test:extended": "mocha \"test/*.js\"",
+    "test:nyc": "nyc --reporter=html --reporter=text mocha test/test*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.jingtum.com/root/jingtum-base-lib.git"
+  },
+  "keywords": [
+    "jingtum",
+    "wallet",
+    "account"
+  ],
+  "author": "landoyjx,wudan_npm",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "assert": "^1.4.1",
+    "base-x": "^1.0.4",
+    "bn.js": "^4.11.6",
+    "brorand": "^1.0.6",
+    "elliptic": "^6.3.2",
+    "extend": "^3.0.0",
+    "hash.js": "^1.0.3",
+    "swtc-address-codec": "^2.0.7"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^5.15.3",
+    "gulp": "^4.0.0",
+    "gulp-bump": "^2.5.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-jshint": "^2.0.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.0",
+    "husky": "^1.3.1",
+    "jshint": "^2.9.4",
+    "map-stream": "0.0.6",
+    "mocha": "^5.2.0",
+    "nyc": "^13.3.0",
+    "prettier": "1.16.4",
+    "pretty-quick": "1.10.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14",
+    "webpack-stream": "^5.2.1"
+  },
+  "directories": {
+    "test": "test"
+  }
+}
