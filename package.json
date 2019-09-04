@@ -1,6 +1,6 @@
 {
   "name": "jingtum-base-lib",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "jingtum base lib for wallet and so on.",
   "main": "index.js",
   "scripts": {

@@ -72,6 +72,10 @@ Wallet.isValidSecret = function(secret) {
 	}
 };
 
+Wallet.checkTx = function(message, signature, publicKey) {
+    return ec.verify(message, signature, hexToBytes(publicKey));
+};
+
 function hash(message) {
   return hashjs.sha512().update(message).digest().slice(0, 32);
 }
