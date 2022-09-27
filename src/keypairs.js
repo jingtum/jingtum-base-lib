@@ -7,7 +7,6 @@ var secp256k1 = require('./secp256k1');
 var hexToBytes = require('./utils').hexToBytes;
 var bytesToHex = require('./utils').bytesToHex;
 var seqEqual = require('./utils').seqEqual;
-var addressCodec = require("swtc-address-codec")();
 
 var SEED_PREFIX = 33;
 var ACCOUNT_PREFIX = 0;
@@ -19,15 +18,71 @@ function sha256(bytes) {
 	return hashjs.sha256().update(bytes).digest();
 }
 
-exports.__encode = addressCodec.encodeAddress;
-exports.__decode = addressCodec.decodeAddress;
+/**
+ * concat an item and a buffer
+ * @param {integer} item1, should be an integer
+ * @param {buffer} buf2, a buffer
+ * @returns {buffer} new Buffer
+ */
+function bufCat0(item1, buf2) {
+    var buf = Buffer.alloc(1 + buf2.length);
+    buf[0] = item1;
+    for(var i = 0; i < buf2.length; i++){
+        buf[i+1] = buf2[i];
+    }
+    // buf2.copy(buf, 1);//前端没有copy方法
+    return buf;
+    // return Buffer.concat([Buffer.from([item1]), buf2]);//前端解析出错
+}
+
+/**
+ * encode use jingtum base58 encoding
+ * including version + data + checksum
+ * @param {integer} version
+ * @param {buffer} bytes
+ * @returns {string}
+ * @private
+ */
+function __encode(bytes, version) {
+    var buffer = bufCat0(version || ACCOUNT_PREFIX, bytes);
+    var checksum = Buffer.from(sha256(sha256(buffer)).slice(0, 4));
+    var ret = Buffer.concat([buffer, checksum]);
+    return base58.encode(ret);
+}
+
+
+/**
+ * decode encoded input,
+ * 	too small or invalid checksum will throw exception
+ * @param {integer} version
+ * @param {string} input
+ * @returns {buffer}
+ * @private
+ */
+function __decode(input, version) {
+    var bytes = base58.decode(input);
+    if (!bytes || bytes[0] !== (version || ACCOUNT_PREFIX) || bytes.length < 5) {
+        throw new Error('invalid input size');
+    }
+    var computed = sha256(sha256(bytes.slice(0, -4))).slice(0, 4);
+    var checksum = bytes.slice(-4);
+    for (var i = 0; i !== 4; i += 1) {
+        if (computed[i] !== checksum[i])
+            throw new Error('invalid checksum');
+    }
+    return bytes.slice(1, -4);
+}
+
+exports.__encode = __encode;
+exports.__decode = __decode;
 
 /**
  * generate random bytes and encode it to secret
  * @returns {string}
  */
 exports.generateSeed = function() {
-    return addressCodec.encodeSeed(brorand(16), "secp256k1")
+    var randBytes = brorand(16);
+    return __encode(randBytes, SEED_PREFIX);
 };
 
 /**
@@ -88,8 +143,8 @@ exports.deriveKeyPairWithKey = function(key) {
 exports.deriveAddress = function(publicKey) {
 	var bytes = hexToBytes(publicKey);
 	var hash256 = hashjs.sha256().update(bytes).digest();
-	var hash160 = hashjs.ripemd160().update(hash256).digest();
-    return  addressCodec.encodeAccountID(hash160);
+    var input = new Buffer(hashjs.ripemd160().update(hash256).digest());
+    return __encode(input);
 };
 
 /**
@@ -98,7 +153,12 @@ exports.deriveAddress = function(publicKey) {
  * @returns {boolean}
  */
 exports.checkAddress = function(address) {
-    return addressCodec.isValidAddress(address);
+    try {
+        __decode(address);
+        return true;
+    } catch (err) {
+        return false;
+    }
 };
 
 /**
@@ -109,7 +169,7 @@ exports.checkAddress = function(address) {
  */
 exports.convertAddressToBytes  = function(address) {
     try {
-        return addressCodec.decodeAddress(address);
+        return __decode(address);
 
     } catch (err) {
         throw new Error('convertAddressToBytes error!');
@@ -123,7 +183,7 @@ exports.convertAddressToBytes  = function(address) {
 //Wallet.prototype.convertBytesToAddress= function(bytes) {
 exports.convertBytesToAddress= function(bytes) {
     try {
-        return addressCodec.encodeAddress(bytes);
+        return __encode(bytes);
 
     } catch (err) {
         throw new Error('convertBytesToAddress error!');
